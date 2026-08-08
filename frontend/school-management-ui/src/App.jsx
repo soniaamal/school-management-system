@@ -23,7 +23,7 @@ function App() {
       <Route path='/fees' element={<Fees />} />
       <Route path='/reports' element={<Reports />} />
       </Route>
-      <Route path='**' element={<NotFound />} />
+      <Route path='*' element={<NotFound />} />
     </Routes>
 
     
