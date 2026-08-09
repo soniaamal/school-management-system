@@ -99,7 +99,7 @@ function Dashboard() {
                 ))}
             </div>
                                                 
-                <div className="card shadow-sm border-0 mt-4">
+            <div className="card shadow-sm border-0 mt-4">
                     <div className="card-body">
                         <h5 className="fw-bold mb-4">Recent Activity</h5>
 
@@ -157,8 +157,6 @@ function Dashboard() {
             </div>
 
         </div>
-        
-
     ); 
 }
 
