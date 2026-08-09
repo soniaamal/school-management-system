@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
+
 import {
     FaUserGraduate,
     FaChalkboardTeacher,
@@ -55,11 +57,36 @@ const activities = [
     },
 ];
 
+const quickActions = [
+    {
+        title: "Add Student",
+        icon: "👨‍🎓",
+        path: "/students",
+
+    },
+    {
+        title: "Add Teachers",
+        icon: "👩‍🏫",
+        path: "/Teachers",
+    },
+    {
+        title: "Take Attendance",
+        icon: "📋",
+        path: "/attendance",
+    },
+    {
+        title: "Collect Fee",
+        icon: "💰",
+        path: "/fees",
+    },
+];
+
 function Dashboard() {
     return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Dashboard</h1>
             
+        
             <div className="row g-4">
                 {state.map((stat) => (
                     <div className="col-md-6 col-lg-3" key={stat.title}>
@@ -69,9 +96,8 @@ function Dashboard() {
                             icon={stat.icon}
                       />
                     </div>
-
-                    
                 ))}
+            </div>
                                                 
                 <div className="card shadow-sm border-0 mt-4">
                     <div className="card-body">
@@ -97,12 +123,41 @@ function Dashboard() {
                                     
                                 </div>
                             </div>        
+                            
                         ))}
-
+        
                     </div>
-                </div>                 
+                {/* </div>                  */}
             </div>
+            <div className="card shadow-sm border-0 mt-4">
+            <div className="card-body">
+                <h5 className="fw-bold mb-4">Quick Actions</h5>
+
+                <div className="row g-3">
+                {quickActions.map((action) => (
+                    <div className="col-md-6 col-lg-3" key={action.title}>
+                    <Link
+                        to={action.path}
+                        className="text-decoration-none"
+                    >
+                        <div className="border rounded p-3 text-center h-100">
+                        <div className="fs-2 mb-2">
+                            {action.icon}
+                        </div>
+
+                        <div className="fw-semibold text-dark">
+                            {action.title}
+                        </div>
+                        </div>
+                    </Link>
+                    </div>
+                ))}
+                </div>
+            </div>
+            </div>
+
         </div>
+        
 
     ); 
 }
