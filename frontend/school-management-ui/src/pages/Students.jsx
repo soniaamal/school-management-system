@@ -30,7 +30,22 @@ function Students() {
 
   const [showForm, setShowForm] = useState(false);
   
+  const [error, setError] = useState("");
+
  const handleAddStudent = () => {
+     if (!formData.name.trim()) {
+         setError("please enter student name. ");
+         return;
+     }
+     if (!formData.className) {
+         setError("please enter student class.");
+         return;
+     }
+     if (!formData.gender) {
+         setError("Please selsct student gender. ");
+         return;
+     }
+
         const newStudent = {
             id: `ST${String(students.length + 1).padStart(3, "0")}`,
             name: formData.name,
@@ -45,9 +60,8 @@ function Students() {
             className: "",
             gender: "",
         });
-
+        setError("");
         setShowForm(false);
-
     };
     
   return (
@@ -78,6 +92,12 @@ function Students() {
             <h5 className="fw-bold mb-4">
               Add New Student
             </h5>
+    
+            {error && (
+             <div className="alert alert-danger">
+                 {error}
+             </div>
+             )}
 
             <div className="row g-3">
 
@@ -88,16 +108,18 @@ function Students() {
                 </label>
 
                 <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter student name"
-                  value={formData.name}
-                  onChange={(e) =>
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter student name"
+                    value={formData.name}
+                    onChange={(e) => {
                     setFormData({
-                      ...formData,
-                      name: e.target.value,
-                    })
-                  }
+                    ...formData,
+                    name: e.target.value,
+                    });
+                    setError("");
+                
+                  }}
                 />
               </div>
 
@@ -112,12 +134,15 @@ function Students() {
                   className="form-control"
                   placeholder="Enter class"
                   value={formData.className}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
-                      ...formData,
-                      className: e.target.value,
-                    })
-                  }
+                    ...formData,
+                    className: e.target.value,
+                    });
+
+                    setError("");
+                    }}
+            
                 />
               </div>
 
@@ -130,12 +155,14 @@ function Students() {
                 <select
                   className="form-select"
                   value={formData.gender}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
-                      ...formData,
-                      gender: e.target.value,
-                    })
-                  }
+                        ...formData,
+                        gender: e.target.value,
+                    });
+
+                    setError("");
+                    }}
                 >
                   <option value="">
                     Select Gender
