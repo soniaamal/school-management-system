@@ -34,7 +34,8 @@ function Students() {
     
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);  
-
+  const [editingStudent, setEditingStudent] = useState(null);
+ 
   const handleAddStudent = () => {
      if (!formData.name.trim()) {
          setError("please enter student name. ");
@@ -47,7 +48,36 @@ function Students() {
      if (!formData.gender) {
          setError("Please selsct student gender. ");
          return;
-     }
+      }
+
+      {/* student table editing logic*/ }
+      if (editingStudent) {
+          const updatedStudents = students.map((student) =>
+              student.id === editingStudent.id
+                  ? {
+                      ...student,
+                      name: formData.name,
+                      className: formData.className,
+                      gender: formData.gender,
+                  }
+                  : student
+          );
+
+          setStudents(updatedStudents);
+
+          setEditingStudent(null);
+
+          setFormData({
+              name: "",
+              className: "",
+              gender: "",
+          });
+          setError("");
+          setShowForm(false);
+
+          return;
+      }
+      
 
         const newStudent = {
             id: `ST${String(students.length + 1).padStart(3, "0")}`,
@@ -68,6 +98,16 @@ function Students() {
     };
     const handleViewStudent = (student) => {
         setSelectedStudent(student);
+    };
+    const handleEditStudent = (student) => {
+        setEditingStudent(student);
+
+        setFormData({
+            name: student.name,
+            className: student.className,
+            gender: student.gender,
+        }),
+            setShowForm(true);
     };
 
     const filteredStudents = students.filter((students) =>
@@ -264,7 +304,9 @@ function Students() {
                         View
                       </button>
 
-                      <button className="btn btn-sm btn-outline-secondary">
+                            <button className="btn btn-sm btn-outline-secondary"
+                                onClick={() => handleEditStudent(student)}
+                            >
                         Edit
                       </button>
                     </td>
