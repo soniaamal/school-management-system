@@ -31,6 +31,8 @@ function Students() {
   const [showForm, setShowForm] = useState(false);
   
   const [error, setError] = useState("");
+    
+  const [searchTerm, setSearchTerm] = useState("");
 
  const handleAddStudent = () => {
      if (!formData.name.trim()) {
@@ -63,8 +65,13 @@ function Students() {
         setError("");
         setShowForm(false);
     };
+
+    const filteredStudents = students.filter((students) =>
+        students.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     
-  return (
+    return (
+      
     <div className="container-fluid p-4">
 
       {/* Page Header */}
@@ -207,6 +214,17 @@ function Students() {
       <div className="card shadow-sm border-0">
 
         <div className="card-body">
+                  
+                  {/* search */}
+                  <div className="mb-4">
+                      <input
+                          type="text"
+                          className="form-control"
+                          placeholder=" search students...."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                  </div>
 
           <div className="table-responsive">
 
@@ -224,7 +242,7 @@ function Students() {
 
               <tbody>
 
-                {students.map((student) => (
+                {filteredStudents.map((student) => (
                   <tr key={student.id}>
 
                     <td>{student.id}</td>
