@@ -33,8 +33,9 @@ function Students() {
   const [error, setError] = useState("");
     
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState(null);  
 
- const handleAddStudent = () => {
+  const handleAddStudent = () => {
      if (!formData.name.trim()) {
          setError("please enter student name. ");
          return;
@@ -64,6 +65,9 @@ function Students() {
         });
         setError("");
         setShowForm(false);
+    };
+    const handleViewStudent = (student) => {
+        setSelectedStudent(student);
     };
 
     const filteredStudents = students.filter((students) =>
@@ -254,7 +258,9 @@ function Students() {
                     <td>{student.gender}</td>
 
                     <td>
-                      <button className="btn btn-sm btn-outline-primary me-2">
+                            <button className="btn btn-sm btn-outline-primary me-2"
+                                onClick={() => handleViewStudent(student)}
+                            >
                         View
                       </button>
 
@@ -275,6 +281,57 @@ function Students() {
         </div>
 
       </div>
+
+            {selectedStudent && (
+                <div className="card shadow-sm border-0 mt-4">
+                    <div className="caard-body">
+                    
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h5 className="fw-bold mb-0">
+                                Student Details
+                            </h5>
+
+                            <button
+                                className="btn btn-sm btn-secondary"
+                                onClick={() => setSelectedStudent(null)}
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <strong>Student ID:</strong>
+                                <p className="text-muted">
+                                    {selectedStudent.id}
+                                </p>
+                            </div>
+
+                            <div className="col-md-6">
+                                <strong>Name:</strong>
+                                <p className="text-muted">
+                                    {selectedStudent.name}
+                                </p>
+                            </div>
+
+                            <div className="col-md-6">
+                                <strong>Class:</strong>
+                                <p className="text-muted">
+                                    {selectedStudent.className}
+                                </p>
+                            </div>
+                            
+                            <div className="col-md-6">
+                                <strong>Gender:</strong>
+                                <p className="text-muted">
+                                    {selectedStudent.gender}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+      )}      
 
     </div>
   );
