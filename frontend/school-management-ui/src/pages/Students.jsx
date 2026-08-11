@@ -110,6 +110,22 @@ function Students() {
             setShowForm(true);
     };
 
+    const handleDeleteStudent = (studentId) => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this student?"
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+        
+        const updatedStudents = students.filter(
+            (student) => student.id !== studentId
+        );
+
+        setStudents(updatedStudents);
+    };
+
     const filteredStudents = students.filter((students) =>
         students.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -298,17 +314,24 @@ function Students() {
                     <td>{student.gender}</td>
 
                     <td>
-                            <button className="btn btn-sm btn-outline-primary me-2"
-                                onClick={() => handleViewStudent(student)}
+                        <button className="btn btn-sm btn-outline-primary me-2"
+                            onClick={() => handleViewStudent(student)}
                             >
-                        View
-                      </button>
+                           View
+                        </button>
 
-                            <button className="btn btn-sm btn-outline-secondary"
-                                onClick={() => handleEditStudent(student)}
+                        <button className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleEditStudent(student)}
                             >
-                        Edit
-                      </button>
+                          Edit
+                        </button>
+                            
+                        <button
+                            className="btn btn-sm btn-outline-danger me-2"
+                            onClick={() => handleDeleteStudent(student.id)}
+                            >
+                        Delete
+                        </button>
                     </td>
 
                   </tr>
