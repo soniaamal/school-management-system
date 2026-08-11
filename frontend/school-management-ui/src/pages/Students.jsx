@@ -35,8 +35,9 @@ function Students() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);  
   const [editingStudent, setEditingStudent] = useState(null);
- 
-  const handleAddStudent = () => {
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  
+   const handleAddStudent = () => {
      if (!formData.name.trim()) {
          setError("please enter student name. ");
          return;
@@ -110,21 +111,24 @@ function Students() {
             setShowForm(true);
     };
 
-    const handleDeleteStudent = (studentId) => {
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this student?"
-        );
-
-        if (!confirmDelete) {
-            return;
-        }
-        
-        const updatedStudents = students.filter(
-            (student) => student.id !== studentId
-        );
-
-        setStudents(updatedStudents);
+    const handleDeleteStudent = (student) => {
+    setStudentToDelete(student);
     };
+
+    const confirmDeleteStudent = () => {
+    if (!studentToDelete) {
+        return;
+    }
+
+    const updatedStudents = students.filter(
+        (student) => student.id !== studentToDelete.id
+    );
+
+    setStudents(updatedStudents);
+
+    setStudentToDelete(null);
+    };
+    
 
     const filteredStudents = students.filter((students) =>
         students.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -328,7 +332,7 @@ function Students() {
                             
                         <button
                             className="btn btn-sm btn-outline-danger me-2"
-                            onClick={() => handleDeleteStudent(student.id)}
+                            onClick={() => handleDeleteStudent(student)}
                             >
                         Delete
                         </button>
@@ -396,7 +400,60 @@ function Students() {
                     </div>
                 </div>
             
-      )}      
+            )}    
+            {studentToDelete && (
+                <div
+                    className="modal fade show d-block"
+                    tabIndex="-1"
+                    style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                >
+                    <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                        <h5 className="modal-title">
+                            Delete Student
+                        </h5>
+
+                        <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setStudentToDelete(null)}
+                        ></button>
+                        </div>
+
+                        <div className="modal-body">
+                        <p className="mb-0">
+                            Are you sure you want to delete{" "}
+                            <strong>{studentToDelete.name}</strong>?
+                        </p>
+                        </div>
+
+                        <div className="modal-footer">
+
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setStudentToDelete(null)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            className="btn btn-danger"
+                            onClick={confirmDeleteStudent}
+                        >
+                            Delete Student
+                        </button>
+
+                        </div>
+
+                    </div>
+                    </div>
+                </div>
+                )}
+            
 
     </div>
   );
