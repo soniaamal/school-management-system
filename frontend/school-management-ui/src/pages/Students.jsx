@@ -316,30 +316,24 @@ function Students() {
 
               <tbody>
 
-                {filteredStudents.map((student) => (
+                {filteredStudents.length > 0 ? ( 
+                 filteredStudents.map((student) => (
                   <tr key={student.id}>
-
                     <td>{student.id}</td>
-
                     <td>{student.name}</td>
-
                     <td>{student.className}</td>
-
                     <td>{student.gender}</td>
-
                     <td>
                         <button className="btn btn-sm btn-outline-primary me-2"
                             onClick={() => handleViewStudent(student)}
                             >
                            View
                         </button>
-
                         <button className="btn btn-sm btn-outline-secondary"
                             onClick={() => handleEditStudent(student)}
                             >
                           Edit
                         </button>
-                            
                         <button
                             className="btn btn-sm btn-outline-danger me-2"
                             onClick={() => handleDeleteStudent(student)}
@@ -348,8 +342,21 @@ function Students() {
                         </button>
                     </td>
 
-                  </tr>
-                ))}
+                     </tr>
+                 ))
+                                    
+              ) : (
+                <tr>
+                                            <td colSpan="5" className="text-center py-5">
+                                                <h5 className="fw-bold mb-2">
+                                                    No Student Found
+                                                </h5>
+                                                <p className="text-muted mb-0">
+                                                    There are no students to  display.
+                                                </p>
+                           </td>
+                 </tr>                       
+                )}
 
               </tbody>
 
