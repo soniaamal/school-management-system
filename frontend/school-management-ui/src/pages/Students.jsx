@@ -161,7 +161,7 @@ function Students() {
           <div className="card-body">
 
             <h5 className="fw-bold mb-4">
-              Add New Student
+                {editingStudent ? "Edit Student" : "Add New Student"}
             </h5>
     
             {error && (
@@ -258,12 +258,22 @@ function Students() {
                     className="btn btn-primary me-2"
                     onClick={handleAddStudent}
                     >
-                    Save Student
+                       {editingStudent ? "Update Student" : "Add Student"}
                     </button>
 
               <button
+                type="button"
                 className="btn btn-secondary"
-                onClick={() => setShowForm(false)}
+                    onClick={() => {
+                        setShowForm(false);
+                        setEditingStudent(null);
+                        setFormData({
+                            name: "",
+                            className: "",
+                            gender: "",
+                        });
+                       setError("");
+                }}
               >
                 Cancel
               </button>
