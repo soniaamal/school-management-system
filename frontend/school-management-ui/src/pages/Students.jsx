@@ -347,14 +347,17 @@ function Students() {
                                     
               ) : (
                 <tr>
-                                            <td colSpan="5" className="text-center py-5">
-                                                <h5 className="fw-bold mb-2">
-                                                    No Student Found
-                                                </h5>
-                                                <p className="text-muted mb-0">
-                                                    There are no students to  display.
-                                                </p>
-                           </td>
+                    <td colSpan="5" className="text-center py-5">
+                       <h5 className="fw-bold mb-2">
+                        {searchTerm ? "No Matching Students": "No Student Found"}
+                        </h5>
+                                                
+                        <p className="text-muted mb-0">
+                        { searchTerm 
+                            ? "No students match your search."
+                            :  "There are no students to  display."}
+                        </p>
+                        </td>
                  </tr>                       
                 )}
 
