@@ -29,3 +29,13 @@ export const StudentProvider = ({ children }) => {
     </StudentContext.Provider>
   );
 };
+export const useStudents = () => {
+    return useContext(StudentContext);
+     if (!context) {
+        throw new Error(
+            "useStudents must be used inside StudentProvider"
+        );
+    }
+
+    return context;
+};

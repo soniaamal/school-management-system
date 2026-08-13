@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { StudentContext } from "../context/StudentContext";
+import { useStudents } from "../context/StudentContext";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 
@@ -59,7 +58,7 @@ const quickActions = [
 ];
 
 function Dashboard() {
-    const { students } = useContext(StudentContext);
+    const { students } = useStudents();
     const state = [
     {
         title: "Total Students",

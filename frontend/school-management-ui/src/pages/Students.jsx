@@ -1,8 +1,8 @@
-import { useState, useContext } from "react";
-import { StudentContext } from "../context/StudentContext";
+import { useState } from "react";
+import { useStudents } from "../context/StudentContext";
 
 function Students() {
-    const {students, setStudents} = useContext(StudentContext);
+    const {students, setStudents} = useStudents();
 
   const [formData, setFormData] = useState({
     name: "",
