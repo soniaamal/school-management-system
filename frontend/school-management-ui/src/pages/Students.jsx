@@ -1,26 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { StudentContext } from "../context/StudentContext";
 
 function Students() {
-  const [students, setStudents] = useState([
-    {
-      id: "ST001",
-      name: "Ahmed Khan",
-      className: "8",
-      gender: "Male",
-    },
-    {
-      id: "ST002",
-      name: "Sara Ahmed",
-      className: "7",
-      gender: "Female",
-    },
-    {
-      id: "ST003",
-      name: "Ali Hassan",
-      className: "9",
-      gender: "Male",
-    },
-  ]);
+    const {students, setStudents} = useContext(StudentContext);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,7 +29,7 @@ function Students() {
          return;
      }
      if (!formData.gender) {
-         setError("Please selsct student gender. ");
+         setError("Please select student gender. ");
          return;
       }
 
