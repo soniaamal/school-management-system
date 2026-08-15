@@ -317,13 +317,13 @@ function Students() {
                             >
                            View
                         </button>
-                        <button className="btn btn-sm btn-outline-secondary"
+                        <button className="btn btn-sm btn-outline-warning me-2"
                             onClick={() => handleEditStudent(student)}
                             >
                           Edit
                         </button>
                         <button
-                            className="btn btn-sm btn-outline-danger me-2"
+                            className="btn btn-sm btn-outline-danger"
                             onClick={() => handleDeleteStudent(student)}
                             >
                         Delete
