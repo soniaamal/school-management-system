@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useStudents } from "../context/StudentContext";
+import { useNavigate } from "react-router-dom";
 
 function Students() {
+    const navigate = useNavigate();
     const {students, setStudents} = useStudents();
 
   const [formData, setFormData] = useState({
@@ -15,7 +17,6 @@ function Students() {
   const [error, setError] = useState("");
     
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState(null);  
   const [editingStudent, setEditingStudent] = useState(null);
   const [studentToDelete, setStudentToDelete] = useState(null);
   
@@ -63,7 +64,12 @@ function Students() {
       
 
         const newStudent = {
-            id: `ST${String(students.length + 1).padStart(3, "0")}`,
+           id: `ST${String(
+            students.reduce((max, student) => {
+                const number = parseInt(student.id.replace("ST", ""), 10);
+                return number > max ? number : max;
+            }, 0) + 1
+        ).padStart(3, "0")}`,
             name: formData.name,
             className: formData.className,
             gender: formData.gender,
@@ -80,7 +86,7 @@ function Students() {
         setShowForm(false);
     };
     const handleViewStudent = (student) => {
-        setSelectedStudent(student);
+        navigate(`/students/${student.id}`);
     };
     const handleEditStudent = (student) => {
         setEditingStudent(student);
@@ -352,57 +358,7 @@ function Students() {
         </div>
 
       </div>
-
-            {selectedStudent && (
-                <div className="card shadow-sm border-0 mt-4">
-                    <div className="caard-body">
-                    
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="fw-bold mb-0">
-                                Student Details
-                            </h5>
-
-                            <button
-                                className="btn btn-sm btn-secondary"
-                                onClick={() => setSelectedStudent(null)}
-                            >
-                                Close
-                            </button>
-                        </div>
-
-                        <div className="row g-3">
-                            <div className="col-md-6">
-                                <strong>Student ID:</strong>
-                                <p className="text-muted">
-                                    {selectedStudent.id}
-                                </p>
-                            </div>
-
-                            <div className="col-md-6">
-                                <strong>Name:</strong>
-                                <p className="text-muted">
-                                    {selectedStudent.name}
-                                </p>
-                            </div>
-
-                            <div className="col-md-6">
-                                <strong>Class:</strong>
-                                <p className="text-muted">
-                                    {selectedStudent.className}
-                                </p>
-                            </div>
-                            
-                            <div className="col-md-6">
-                                <strong>Gender:</strong>
-                                <p className="text-muted">
-                                    {selectedStudent.gender}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            
-            )}    
+   
             {studentToDelete && (
                 <div
                     className="modal fade show d-block"

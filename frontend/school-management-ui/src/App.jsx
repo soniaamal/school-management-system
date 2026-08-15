@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
+import StudentDetails from './pages/StudentDetails';
 import Teachers from './pages/Teachers';
 import Attendance from './pages/Attendance';
 import Fees from './pages/Fees';
@@ -18,6 +19,7 @@ function App() {
       <Route path='/' element={<MainLayout />} >
       <Route index element={<Dashboard />} />
       <Route path='/students' element={<Students />} />
+      <Route path='/students/:id' element={<StudentDetails />} />
       <Route path='/teachers' element={<Teachers />} />
       <Route path='/attendance' element={<Attendance />} />
       <Route path='/fees' element={<Fees />} />
