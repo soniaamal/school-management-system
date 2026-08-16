@@ -1,6 +1,7 @@
 import { useStudents } from "../context/StudentContext";
 import { useTeachers } from "../context/TeacherContext";
 import { useClasses } from "../context/ClassContext";
+import { useAttendance } from "../context/AttendanceContext";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 
@@ -10,6 +11,7 @@ import {
     FaSchool,
     FaClipboardCheck,
 } from "react-icons/fa";
+import Attendance from "./Attendance";
 
 const activities = [
     {
@@ -63,33 +65,49 @@ function Dashboard() {
     const { students } = useStudents();
     const { teachers } = useTeachers();
     const { classes } = useClasses();
+    const { attendance } = useAttendance();
+
+    const presentCount = attendance.filter(
+    (record) => record.status === "Present"
+    ).length;
+
+    const absentCount = attendance.filter(
+        (record) => record.status === "Absent"
+    ).length;
+
+    const totalMarked = presentCount + absentCount;
+
+    const attendancePercentage =
+      totalMarked > 0
+        ? Math.round((presentCount / totalMarked) * 100)
+        : 0;
 
     const state = [
-    {
-        title: "Total Students",
-        value: students.length,
-        icon: FaUserGraduate,
+        {
+            title: "Total Students",
+            value: students.length,
+            icon: FaUserGraduate,
 
-    },
-    {
-        title: "Total Teachers",
-        value: teachers.length,
-        icon: FaChalkboardTeacher,
+        },
+        {
+            title: "Total Teachers",
+            value: teachers.length,
+            icon: FaChalkboardTeacher,
 
-    },
-    {
-        title: "Total Classes",
-        value: classes.length,
-        icon: FaSchool,
+        },
+        {
+            title: "Total Classes",
+            value: classes.length,
+            icon: FaSchool,
 
-    },
-    {
-        title: "Attendance",
-        value: "94%",
-        icon: FaClipboardCheck,
+        },
+        {
+            title: "Attendance",
+            value: `${attendancePercentage}%`,
+            icon: FaClipboardCheck,
 
-    },
-];
+        },
+    ];
     return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Dashboard</h1>
@@ -114,7 +132,7 @@ function Dashboard() {
                         {activities.map((activity, index) => (
                             <div
                                 key={index}
-                                className="d-flex align-item-center vorder-bottom py-3"
+                                className="d-flex align-item-center border-bottom py-3"
                             >
                                 <div className="fs-4 me-3">
                                     {activity.icon}
