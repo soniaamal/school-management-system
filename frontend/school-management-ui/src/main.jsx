@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import { ClassProvider } from "./context/ClassContext";
 import { StudentProvider } from "./context/StudentContext";
 import { TeacherProvider } from "./context/TeacherContext";
 
@@ -10,11 +11,13 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    < StudentProvider>
-      <TeacherProvider>
-        <App />
-      </TeacherProvider>
+    <ClassProvider>
+      <StudentProvider>
+        <TeacherProvider>
+          <App />
+        </TeacherProvider>
 
-    </StudentProvider>
+        </StudentProvider>
+    </ClassProvider>
   </BrowserRouter>
 );

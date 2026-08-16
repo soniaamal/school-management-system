@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
+import Classes from './pages/Classes';
 import Students from './pages/Students';
 import StudentDetails from './pages/StudentDetails';
 import Teachers from './pages/Teachers';
@@ -18,6 +19,7 @@ function App() {
       
       <Route path='/' element={<MainLayout />} >
       <Route index element={<Dashboard />} />
+      <Route path='/classes' element={<Classes />} />
       <Route path='/students' element={<Students />} />
       <Route path='/students/:id' element={<StudentDetails />} />
       <Route path='/teachers' element={<Teachers />} />

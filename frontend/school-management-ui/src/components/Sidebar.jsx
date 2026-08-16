@@ -7,6 +7,7 @@ import {
     FaClipboardCheck,
     FaMoneyBill,
     FaChartBar,
+    FaSchool,
 } from "react-icons/fa";
 
 const menuItems = [
@@ -16,7 +17,7 @@ const menuItems = [
         icon: FaHome,
     },
     {
-        name: "Studens",
+        name: "Students",
         path: "/students",
         icon: FaUserGraduate,
     },
@@ -24,6 +25,11 @@ const menuItems = [
         name: "Teachers",
         path: "/teachers",
         icon: FaChalkboardTeacher,
+    },
+    {
+        name: "Classes",
+        path: "/classes",
+        icon: FaSchool,
     },
     {
         name: "Attendance",

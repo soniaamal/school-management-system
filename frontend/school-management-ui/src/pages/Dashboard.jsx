@@ -1,5 +1,6 @@
 import { useStudents } from "../context/StudentContext";
 import { useTeachers } from "../context/TeacherContext";
+import { useClasses } from "../context/ClassContext";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 
@@ -61,6 +62,8 @@ const quickActions = [
 function Dashboard() {
     const { students } = useStudents();
     const { teachers } = useTeachers();
+    const { classes } = useClasses();
+
     const state = [
     {
         title: "Total Students",
@@ -76,7 +79,7 @@ function Dashboard() {
     },
     {
         title: "Total Classes",
-        value: "18",
+        value: classes.length,
         icon: FaSchool,
 
     },
