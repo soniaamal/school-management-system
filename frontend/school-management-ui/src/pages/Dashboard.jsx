@@ -2,6 +2,7 @@ import { useStudents } from "../context/StudentContext";
 import { useTeachers } from "../context/TeacherContext";
 import { useClasses } from "../context/ClassContext";
 import { useAttendance } from "../context/AttendanceContext";
+import { useFees } from "../context/FeeContext";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 
@@ -11,7 +12,6 @@ import {
     FaSchool,
     FaClipboardCheck,
 } from "react-icons/fa";
-import Attendance from "./Attendance";
 
 const activities = [
     {
@@ -66,6 +66,7 @@ function Dashboard() {
     const { teachers } = useTeachers();
     const { classes } = useClasses();
     const { attendance } = useAttendance();
+    const { fees } = useFees();
 
     const presentCount = attendance.filter(
     (record) => record.status === "Present"
@@ -81,7 +82,20 @@ function Dashboard() {
       totalMarked > 0
         ? Math.round((presentCount / totalMarked) * 100)
         : 0;
+    const paidFees = fees
+    .filter((fee) => fee.status === "Paid")
+    .reduce(
+        (total, fee) => total + Number(fee.amount),
+        0
+    );
 
+    const pendingFees = fees
+        .filter((fee) => fee.status === "Pending")
+        .reduce(
+            (total, fee) => total + Number(fee.amount),
+        0
+    );
+     
     const state = [
         {
             title: "Total Students",
@@ -124,6 +138,46 @@ function Dashboard() {
                     </div>
                 ))}
             </div>
+
+            <div className="row g-4 mt-1">
+
+                <div className="col-md-6">
+                    <div className="card shadow-sm border-0">
+                        <div className="card-body">
+                            <h6 className="text-muted">
+                                Paid Fees
+                            </h6>
+
+                            <h3 className="fw-bold text-success">
+                                Rs. {paidFees.toLocaleString()}
+                            </h3>
+
+                            <small className="text-muted">
+                                Total collected fees
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-md-6">
+                    <div className="card shadow-sm border-0">
+                        <div className="card-body">
+                            <h6 className="text-muted">
+                                Pending Fees
+                            </h6>
+
+                            <h3 className="fw-bold text-warning">
+                                Rs. {pendingFees.toLocaleString()}
+                            </h3>
+
+                            <small className="text-muted">
+                                Fees still pending
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
                                                 
             <div className="card shadow-sm border-0 mt-4">
                     <div className="card-body">
@@ -132,7 +186,7 @@ function Dashboard() {
                         {activities.map((activity, index) => (
                             <div
                                 key={index}
-                                className="d-flex align-item-center border-bottom py-3"
+                                className="d-flex align-items-center border-bottom py-3"
                             >
                                 <div className="fs-4 me-3">
                                     {activity.icon}
