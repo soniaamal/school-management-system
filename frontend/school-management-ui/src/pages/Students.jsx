@@ -63,17 +63,18 @@ function Students() {
       }
       
 
-        const newStudent = {
-           id: `ST${String(
-            students.reduce((max, student) => {
-                const number = parseInt(student.id.replace("ST", ""), 10);
-                return number > max ? number : max;
-            }, 0) + 1
-        ).padStart(3, "0")}`,
-            name: formData.name,
-            className: formData.className,
-            gender: formData.gender,
-        };
+      const newStudent = {
+          id: `ST${String(
+              students.reduce((max, student) => {
+                  const number = parseInt(student.id.replace("ST", ""), 10);
+                  return number > max ? number : max;
+              }, 0) + 1
+          ).padStart(3, "0")}`,
+          name: formData.name,
+          className: formData.className,
+          gender: formData.gender,
+          createdAt: new Date().toISOString(),
+      };
 
         setStudents([...students, newStudent]);
 

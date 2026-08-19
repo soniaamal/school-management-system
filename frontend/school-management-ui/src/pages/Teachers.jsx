@@ -36,6 +36,7 @@ function Teachers() {
         name: formData.name,
         subject: formData.subject,
         gender: formData.gender,
+        createdAt: new Date().toISOString(),
     };
 
     setTeachers([...teachers, newTeacher]);

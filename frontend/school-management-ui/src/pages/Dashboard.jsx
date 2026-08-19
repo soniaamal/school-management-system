@@ -13,30 +13,6 @@ import {
     FaClipboardCheck,
 } from "react-icons/fa";
 
-const activities = [
-    {
-        icon: "👨‍🎓",
-        message: "Ahmed joined Class 8",
-        time: "10 min ago",
-    },
-    {
-        icon: "💰",
-        message: " Fees payment recived",
-        time: " 30 mint ago",
-
-    },
-    {
-        icon: "👩‍🏫",
-        message: "New Teacher added",
-        time: " 1 hour ago",
-    },
-    {
-        icon: "📋",
-        message: "Attendance marked for Class 7",
-        time: "2 hours ago",
-    },
-];
-
 const quickActions = [
     {
         title: "Add Student",
@@ -61,6 +37,49 @@ const quickActions = [
     },
 ];
 
+const formatActivityTime = (date) => {
+    if (!date) return "";
+
+    const activityDate = new Date(date);
+    const now = new Date();
+
+    const diffInSeconds = Math.floor(
+        (now - activityDate) / 1000
+    );
+
+    if (diffInSeconds < 60) {
+        return "Just now";
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+    if (diffInMinutes < 60) {
+        return `${diffInMinutes} minute${
+            diffInMinutes === 1 ? "" : "s"
+        } ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+
+    if (diffInHours < 24) {
+        return `${diffInHours} hour${
+            diffInHours === 1 ? "" : "s"
+        } ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays === 1) {
+        return "Yesterday";
+    }
+
+    if (diffInDays < 7) {
+        return `${diffInDays} days ago`;
+    }
+
+    return activityDate.toLocaleDateString();
+};
+
 function Dashboard() {
     const { students } = useStudents();
     const { teachers } = useTeachers();
@@ -68,6 +87,42 @@ function Dashboard() {
     const { attendance } = useAttendance();
     const { fees } = useFees();
 
+    const activities = [
+        ...students.map((student) => ({
+            icon: "👨‍🎓",
+            message: `${student.name} joined ${student.className}`,
+            type: "student",
+            date: student.createdAt || "",
+        })),
+
+        ...teachers.map((teacher) => ({
+            icon: "👩‍🏫",
+            message: `New Teacher added :  ${teacher.name}`,
+            type: "teacher",
+            date: teacher.createdAt || "",
+        })),
+
+        ...attendance.map((record) => ({
+            icon: "📋",
+            message: `Attendance marked for ${record.studentName}`,
+            type: "attendance",
+            date: record.date,
+        })),
+
+        ...fees.map((fee) => ({
+            icon: "💰",
+            message: `Fee record added for ${fee.studentName}`,
+            type: "fee",
+            date: fee.createdAt || "",
+        })),
+    ];
+    
+        const sortedActivities = [...activities]
+            .filter((activity) => activity.date)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+    
+    
     const presentCount = attendance.filter(
     (record) => record.status === "Present"
     ).length;
@@ -183,7 +238,7 @@ function Dashboard() {
                     <div className="card-body">
                         <h5 className="fw-bold mb-4">Recent Activity</h5>
 
-                        {activities.map((activity, index) => (
+                        {sortedActivities.map((activity, index) => (
                             <div
                                 key={index}
                                 className="d-flex align-items-center border-bottom py-3"
@@ -198,7 +253,7 @@ function Dashboard() {
                                     </div>
 
                                     <small className="text-muted">
-                                        {activity.time}
+                                        {formatActivityTime(activity.date)}
                                     </small>
                                     
                                 </div>

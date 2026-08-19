@@ -81,12 +81,18 @@ const pendingFees = fees
         // ADD new fee
         else {
             const newFee = {
-                id: `FEE${String(fees.length + 1).padStart(3, "0")}`,
+                id: `FEE${String(
+                    fees.reduce((max, fee) => {
+                        const number = parseInt(fee.id.replace("FEE", ""), 10);
+                        return number > max ? number : max;
+                    }, 0) + 1
+                ).padStart(3, "0")}`,
                 studentId: selectedStudent.id,
                 studentName: selectedStudent.name,
                 className: selectedStudent.className,
                 amount: Number(formData.amount),
                 status: formData.status,
+                createdAt: new Date().toISOString(),
             };
 
             setFees([...fees, newFee]);
