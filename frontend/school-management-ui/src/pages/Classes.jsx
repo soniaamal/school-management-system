@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { useClasses } from "../context/ClassContext";
+import { useTeachers } from "../context/TeacherContext";
+import { useStudents } from "../context/StudentContext";
 
 function Classes() {
     const { classes, setClasses } = useClasses();
+    const { teachers } = useTeachers();
+    const { students } = useStudents();
 
     const [showForm, setShowForm] = useState(false);
     const [editingClass, setEditingClass] = useState(null);
+    
     
     const [selectedClass, setSelectedClass] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -96,13 +101,34 @@ const handleViewClass = (classItem) => {
         setSelectedClass(classItem);
     
 };
-const filteredClasses = classes.filter((classItem) =>
-        classItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        classItem.section.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        classItem.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        classItem.id.toLowerCase().includes(searchTerm.toLowerCase())
-);    
+const filteredClasses = classes.filter((classItem) => {
+    const teacherName =
+        teachers.find(
+            (teacher) => teacher.id === classItem.teacher
+        )?.name || "";
+
     return (
+        classItem.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+
+        classItem.section
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+
+        classItem.teacher
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+
+        teacherName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+
+        classItem.id
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+    );
+});    return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Classes</h1>
 
@@ -174,18 +200,30 @@ const filteredClasses = classes.filter((classItem) =>
                                         <label className="form-label">
                                             Teacher
                                         </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
+
+                                        <select
+                                            className="form-select"
                                             value={formData.teacher}
-                                            onChange={(e) => 
+                                            onChange={(e) =>
                                                 setFormData({
                                                     ...formData,
                                                     teacher: e.target.value,
-                                            })
-                                        }
-                                            placeholder="Enter teacher name"
-                                        />
+                                                })
+                                            }
+                                        >
+                                            <option value="">
+                                                Select Teacher
+                                            </option>
+
+                                            {teachers.map((teacher) => (
+                                                <option
+                                                    key={teacher.id}
+                                                    value={teacher.id}
+                                                >
+                                                    {teacher.id} - {teacher.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                 </div>
@@ -268,9 +306,63 @@ const filteredClasses = classes.filter((classItem) =>
                                     <div className="col-md-6">
                                         <strong>Teacher:</strong>
                                             <p className="text-muted">
-                                                {selectedClass.teacher}
+                                                {teachers.find(
+                                                    (teacher) => teacher.id === selectedClass.teacher
+                                                    )?.name || "Not Assigned"}
                                             </p>
                                     </div>
+
+                                     <div className="col-md-6">
+                                        <strong>Students: </strong>
+                                            <p className="text-muted">
+                                                {students.filter(
+                                                (student) => 
+                                                student.className == selectedClass.name
+                                                ).length}
+                                            </p> 
+                                </div>
+                                
+                                <div className="col-12">
+                                    <strong>Student List:</strong>
+
+                                    <div className="table-responsive mt-2">
+                                        <table className="table table-sm table-bordered align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Student ID</th>
+                                                    <th>Student Name</th>
+                                                    <th>Gender</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                {students.filter(
+                                                        (student) =>
+                                                            student.className === selectedClass.name
+                                                ).length > 0 ? (
+                                                        students
+                                                            .filter(
+                                                                (student) =>
+                                                                    student.className === selectedClass.name
+                                                        )
+                                                    .map((student) => (
+                                                        <tr key={student.id}>
+                                                            <td>{student.id}</td>
+                                                            <td>{student.name}</td>
+                                                            <td>{student.gender}</td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                        <tr>
+                                                            <td colSpan="3" className="text-center text-muted">
+                                                                No students assigned to this class
+                                                            </td>
+                                                    </tr>    
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
 
                                 </div>
                             </div>
@@ -295,6 +387,7 @@ const filteredClasses = classes.filter((classItem) =>
                                     <th>Class</th>
                                     <th>Section</th>
                                     <th>Teacher</th>
+                                    <th>Students</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -305,7 +398,15 @@ const filteredClasses = classes.filter((classItem) =>
                                         <td>{classItem.id}</td>
                                         <td>{classItem.name}</td>
                                         <td>{classItem.section}</td>
-                                        <td>{classItem.teacher}</td>
+                                        <td>{teachers.find(
+                                            (teacher) => teacher.id === classItem.teacher
+                                            )?.name || "Not Assigned"}
+                                        </td>
+                                        <td>
+                                            {students.filter(
+                                                (student) => student.className === classItem.name
+                                            ).length}
+                                        </td>
 
                                         <td>
                                             <button
