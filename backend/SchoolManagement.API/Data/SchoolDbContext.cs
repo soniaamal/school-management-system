@@ -13,7 +13,7 @@ namespace SchoolManagement.API.Data
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Class> Classes { get; set; }
 
-        public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<Attendance> Attendance { get; set; }
         public DbSet<Fee> Fees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
