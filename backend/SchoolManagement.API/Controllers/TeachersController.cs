@@ -70,6 +70,7 @@ namespace SchoolManagement.API.Controllers
             existingTeacher.TeacherCode = teacher.TeacherCode;
             existingTeacher.Name = teacher.Name;
             existingTeacher.Subject = teacher.Subject;
+            existingTeacher.Gender = teacher.Gender;
 
             await _context.SaveChangesAsync();
 

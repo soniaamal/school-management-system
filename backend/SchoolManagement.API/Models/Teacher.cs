@@ -10,6 +10,8 @@ namespace SchoolManagement.API.Models
 
         public string Subject { get; set; } = string.Empty;
 
+        public string Gender { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
