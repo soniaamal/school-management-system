@@ -4,7 +4,14 @@ import { useTeachers } from "../context/TeacherContext";
 import { useStudents } from "../context/StudentContext";
 
 function Classes() {
-    const { classes, setClasses } = useClasses();
+    const {
+    classes,
+    addClass,
+    updateClass,
+    deleteClass,
+    loading,
+    error,
+    } = useClasses();
     const { teachers } = useTeachers();
     const { students } = useStudents();
 
@@ -17,85 +24,145 @@ function Classes() {
     const [formData, setFormData] = useState({
         name: "",
         section:"",
-        teacher:"",
+        teacherCode:"",
     })
-    const handleAddClass = () => {
-    const numbers = classes.map((classItem) => {
-        if (!classItem.id) return 0;
+  const handleAddClass = async (e) => {
+    e.preventDefault();
 
-        return (
-            parseInt(
-                String(classItem.id).replace("C", ""),
-                10
-            ) || 0
-        );
-    });
+    if (!formData.name.trim()) {
+        alert("Please enter class name.");
+        return;
+    }
 
-    const nextId = Math.max(0, ...numbers) + 1;
+    if (!formData.section.trim()) {
+        alert("Please enter section.");
+        return;
+    }
 
-    const newClass = {
-        id: `C${String(nextId).padStart(3, "0")}`,
-        name: formData.name,
-        section: formData.section,
-        teacher: formData.teacher,
-    };
+    if (!formData.teacherCode) {
+        alert("Please select a teacher.");
+        return;
+    }
 
-    setClasses([...classes, newClass]);
+    try {
+        // Generate the next ClassCode
+        const numbers = classes.map((classItem) => {
+            if (!classItem.classCode) return 0;
 
-    setFormData({
-        name: "",
-        section: "",
-        teacher: "",
-    });
+            return (
+                parseInt(
+                    String(classItem.classCode).replace("C", ""),
+                    10
+                ) || 0
+            );
+        });
 
-    setShowForm(false);
+        const nextCodeNumber = Math.max(0, ...numbers) + 1;
+
+        const newClass = {
+            classCode: `C${String(nextCodeNumber).padStart(3, "0")}`,
+            name: formData.name,
+            section: formData.section,
+            teacherCode: formData.teacherCode,
+        };
+
+        await addClass(newClass);
+
+        alert("Class added successfully.");
+
+        setFormData({
+            name: "",
+            section: "",
+            teacherCode: "",
+        });
+
+        setShowForm(false);
+    } catch (error) {
+        console.error("Error adding class:", error);
+        alert("Failed to add class.");
+    }
 };
-const handleDeleteClass = (id) => {
-    const updatedClasses = classes.filter(
-        (classItem) => classItem.id !== id
+const handleDeleteClass = async (id) => {
+    const confirmed = window.confirm(
+        "Are you sure you want to delete this class?"
     );
 
-    setClasses(updatedClasses);
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        await deleteClass(id);
+
+        alert("Class deleted successfully.");
+    } catch (error) {
+        console.error("Error deleting class:", error);
+        alert("Failed to delete class.");
+    }
 };
     
 const handleEditClass = (classItem) => {
     setEditingClass(classItem);
+    setSelectedClass(classItem);
 
     setFormData({
-    
         name: classItem.name,
         section: classItem.section,
-        teacher: classItem.teacher,
+        teacherCode: classItem.teacherCode,
     });
 
     setShowForm(true);
 };
 
-const handleUpdateClass = () => {
-    const updatedClasses = classes.map((classItem) => {
-        if (classItem.id === editingClass.id) {
-            return {
-                ...classItem,
-                name: formData.name,
-                section: formData.section,
-                teacher: formData.teacher,
-            };
-        }
+const handleUpdateClass = async (e) => {
+    e.preventDefault();
 
-        return classItem;
-    });
+    if (!selectedClass) {
+        return;
+    }
 
-    setClasses(updatedClasses);
+    if (!formData.name.trim()) {
+        alert("Please enter class name.");
+        return;
+    }
 
-    setEditingClass(null);
+    if (!formData.section.trim()) {
+        alert("Please enter section.");
+        return;
+    }
 
-    setFormData({
-        name: "",
-        section: "",
-        teacher: "",
-    });
+    if (!formData.teacherCode) {
+        alert("Please select a teacher.");
+        return;
+    }
 
-    setShowForm(false);
+    try {
+        const updatedClassData = {
+            classCode: selectedClass.classCode,
+            name: formData.name,
+            section: formData.section,
+            teacherCode: formData.teacherCode,
+        };
+
+        await updateClass(
+            selectedClass.id,
+            updatedClassData
+        );
+
+        alert("Class updated successfully.");
+
+        setFormData({
+            name: "",
+            section: "",
+            teacherCode: "",
+        });
+
+        setSelectedClass(null);
+        setShowForm(false);
+    } catch (error) {
+        console.error("Error updating class:", error);
+        alert("Failed to update class.");
+    }
 };
 const handleViewClass = (classItem) => {
         setSelectedClass(classItem);
@@ -104,31 +171,35 @@ const handleViewClass = (classItem) => {
 const filteredClasses = classes.filter((classItem) => {
     const teacherName =
         teachers.find(
-            (teacher) => teacher.id === classItem.teacher
+            (teacher) =>
+                teacher.teacherCode === classItem.teacherCode
         )?.name || "";
 
+    const search = searchTerm.toLowerCase();
+
     return (
-        classItem.name
+        (classItem.classCode || "")
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
+            .includes(search) ||
 
-        classItem.section
+        (classItem.name || "")
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
+            .includes(search) ||
 
-        classItem.teacher
+        (classItem.section || "")
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
+            .includes(search) ||
+
+        (classItem.teacherCode || "")
+            .toLowerCase()
+            .includes(search) ||
 
         teacherName
             .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-
-        classItem.id
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+            .includes(search)
     );
-});    return (
+});
+    return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Classes</h1>
 
@@ -203,11 +274,11 @@ const filteredClasses = classes.filter((classItem) => {
 
                                         <select
                                             className="form-select"
-                                            value={formData.teacher}
+                                            value={formData.teacherCode}
                                             onChange={(e) =>
                                                 setFormData({
                                                     ...formData,
-                                                    teacher: e.target.value,
+                                                    teacherCode: e.target.value,
                                                 })
                                             }
                                         >
@@ -218,9 +289,8 @@ const filteredClasses = classes.filter((classItem) => {
                                             {teachers.map((teacher) => (
                                                 <option
                                                     key={teacher.id}
-                                                    value={teacher.id}
-                                                >
-                                                    {teacher.id} - {teacher.name}
+                                                    value={teacher.teacherCode}>
+                                                    {teacher.teacherCode} - {teacher.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -249,7 +319,7 @@ const filteredClasses = classes.filter((classItem) => {
                                             setFormData({
                                                 name: "",
                                                 section: "",
-                                                teacher: "",
+                                                teacherCode: "",
                                           
                                             });
                                         }}
@@ -307,7 +377,7 @@ const filteredClasses = classes.filter((classItem) => {
                                         <strong>Teacher:</strong>
                                             <p className="text-muted">
                                                 {teachers.find(
-                                                    (teacher) => teacher.id === selectedClass.teacher
+                                                    (teacher) => teacher.teacherCode  === selectedClass.teacherCode 
                                                     )?.name || "Not Assigned"}
                                             </p>
                                     </div>
@@ -395,11 +465,11 @@ const filteredClasses = classes.filter((classItem) => {
                             <tbody>
                                 {filteredClasses.map((classItem) => (
                                     <tr key={classItem.id}>
-                                        <td>{classItem.id}</td>
+                                        <td>{classItem.classCode}</td>
                                         <td>{classItem.name}</td>
                                         <td>{classItem.section}</td>
                                         <td>{teachers.find(
-                                            (teacher) => teacher.id === classItem.teacher
+                                            (teacher) => teacher.teacherCode  === classItem.teacherCode 
                                             )?.name || "Not Assigned"}
                                         </td>
                                         <td>

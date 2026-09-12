@@ -1,54 +1,64 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAttendance } from "../context/AttendanceContext";
 import { useStudents } from "../context/StudentContext";
 
 function Attendance() {
-    const { attendance, setAttendance } = useAttendance();
-    const { students } = useStudents();
+    const { attendance,
+        addAttendance,
+        updateAttendance,
+        deleteAttendance,
+        loading,
+        error: attendanceError,
+    } = useAttendance();
+    
+    const {
+        students,
+        loading: studentsLoading,
+    } = useStudents();
 
     const [selectedDate, setSelectedDate] = useState(
         new Date().toISOString().split("T")[0]
     );
     const [searchTerm, setSearchTerm] = useState("");
 
-    const handleAttendance = (student, status) => {
-    const existingAttendance = attendance.find(
-        (record) =>
-            record.studentId === student.id &&
-            record.date === selectedDate
-    );
+    const [error, setError] = useState("");
 
-    if (existingAttendance) {
-        const updatedAttendance = attendance.map((record) => {
-            if (
-                record.studentId === student.id &&
-                record.date === selectedDate
-            ) {
-                return {
-                    ...record,
-                    status: status,
-                };
-            }
+   const handleAttendance = async (student, status) => {
+    try {
+        const existingRecord = attendance.find(
+            (record) =>
+                record.studentId === student.studentCode &&
+                record.date.startsWith(selectedDate)
+        );
 
-            return record;
-        });
-
-        setAttendance(updatedAttendance);
-    } else {
-        const newRecord = {
-            id: `${student.id}-${selectedDate}`,
-            studentId: student.id,
+        const attendanceData = {
+            studentId: student.studentCode,
             studentName: student.name,
             className: student.className,
             date: selectedDate,
             status: status,
         };
 
-        setAttendance([...attendance, newRecord]);
+        // UPDATE existing attendance
+        if (existingRecord) {
+            await updateAttendance(
+                existingRecord.id,
+                attendanceData
+            );
+        }
+        // ADD new attendance
+        else {
+            await addAttendance(attendanceData);
+        }
+    } catch (error) {
+        console.error("Error saving attendance:", error);
+        setError("Failed to save attendance.");
     }
 };
+    
+
 const todayAttendance = attendance.filter(
-    (record) => record.date === selectedDate
+    (record) => record.date.startsWith(selectedDate)
 );
 
 const presentCount = todayAttendance.filter(
@@ -62,14 +72,98 @@ const absentCount = todayAttendance.filter(
 const notMarkedCount = students.length - todayAttendance.length;
     
 const attendanceRecords = attendance.filter(
-    (record) => record.date === selectedDate
+    (record) => record.date.startsWith(selectedDate)
 );   
     
-const filteredStudents = students.filter((student) =>
-    student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.className.toLowerCase().includes(searchTerm.toLowerCase())
-);
+    const filteredStudents = useMemo(() => {
+        return students.filter((student) => {
+            const search = searchTerm.toLowerCase();
+
+            return (
+                (student.studentCode || "")
+                    .toLowerCase()
+                    .includes(search) ||
+                (student.name || "")
+                    .toLowerCase()
+                    .includes(search) ||
+                (student.className || "")
+                    .toLowerCase()
+                    .includes(search)
+            );
+        });
+    }, [students, searchTerm]);
+
+    // GET ATTENDANCE FOR STUDENT + DATE
+     const getAttendanceRecord = (student) => {
+        return attendance.find(
+            (record) =>
+                record.studentId === student.studentCode &&
+                record.date.startsWith(selectedDate)
+        );
+    };
+
+    // ==========================================
+    // GET STATUS
+    // ==========================================
+    const getStudentStatus = (student) => {
+        const record = getAttendanceRecord(student);
+
+        return record ? record.status : "";
+    };
+
+   
+
+    // ==========================================
+    // DELETE ATTENDANCE
+    // ==========================================
+    const handleDeleteAttendance = async (student) => {
+        try {
+            setError("");
+
+            const existingRecord =
+                getAttendanceRecord(student);
+
+            if (!existingRecord) {
+                return;
+            }
+
+            await deleteAttendance(existingRecord.id);
+        } catch (error) {
+            console.error(
+                "Error deleting attendance:",
+                error
+            );
+
+            setError(
+                "Failed to delete attendance. Please try again."
+            );
+        }
+    };
+
+    // ==========================================
+    // LOADING
+    // ==========================================
+    if (loading || studentsLoading) {
+        return (
+            <div className="container-fluid p-4">
+                <div className="text-center py-5">
+                    <div
+                        className="spinner-border text-primary"
+                        role="status"
+                    >
+                        <span className="visually-hidden">
+                            Loading...
+                        </span>
+                    </div>
+
+                    <p className="text-muted mt-3">
+                        Loading attendance...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Attendance</h1>
@@ -185,7 +279,7 @@ const filteredStudents = students.filter((student) =>
                             <tbody>
                                 {filteredStudents.map((student) => (
                                     <tr key={student.id}>
-                                        <td>{student.id}</td>
+                                        <td>{student.studentCode}</td>
 
                                         <td>{student.name}</td>
 
@@ -197,17 +291,18 @@ const filteredStudents = students.filter((student) =>
                                             {(() => {
                                                 const record = attendance.find(
                                                     (item) =>
-                                                        item.studentId === student.id &&
-                                                        item.date === selectedDate
+                                                        item.studentId === student.studentCode &&
+                                                        item.date.startsWith(selectedDate)
                                                 );
+
                                                 return (
                                                     <>
-                                                                
                                                         <button
-                                                            className={`btn btn-sm me-2 ${record?.status === "Present"
-                                                                ? "btn-success"
-                                                                : "btn-outline-success"
-                                                                }`}
+                                                            className={`btn btn-sm me-2 ${
+                                                                record?.status === "Present"
+                                                                    ? "btn-success"
+                                                                    : "btn-outline-success"
+                                                            }`}
                                                             onClick={() =>
                                                                 handleAttendance(student, "Present")
                                                             }
@@ -216,10 +311,11 @@ const filteredStudents = students.filter((student) =>
                                                         </button>
 
                                                         <button
-                                                            className={`btn btn-sm ${record?.status === "Absent"
-                                                                ? "btn-danger"
-                                                                : "btn-outline-danger"
-                                                                }`}
+                                                            className={`btn btn-sm ${
+                                                                record?.status === "Absent"
+                                                                    ? "btn-danger"
+                                                                    : "btn-outline-danger"
+                                                            }`}
                                                             onClick={() =>
                                                                 handleAttendance(student, "Absent")
                                                             }
@@ -228,7 +324,7 @@ const filteredStudents = students.filter((student) =>
                                                         </button>
                                                     </>
                                                 );
-                                            })()}    
+                                            })()}   
                                         </td>
                                     </tr>
                                 ))}

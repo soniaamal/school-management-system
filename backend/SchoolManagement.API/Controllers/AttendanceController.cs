@@ -20,7 +20,7 @@ namespace SchoolManagement.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Attendance>>> GetAttendance()
         {
-            return await _context.Attendance
+            return await _context.Attendances
                 .OrderByDescending(a => a.Date)
                 .ToListAsync();
         }
@@ -29,7 +29,7 @@ namespace SchoolManagement.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Attendance>> GetAttendanceById(int id)
         {
-            var attendance = await _context.Attendance.FindAsync(id);
+            var attendance = await _context.Attendances.FindAsync(id);
 
             if (attendance == null)
             {
@@ -46,7 +46,7 @@ namespace SchoolManagement.API.Controllers
         {
             attendance.CreatedAt = DateTime.UtcNow;
 
-            _context.Attendance.Add(attendance);
+            _context.Attendances.Add(attendance);
 
             await _context.SaveChangesAsync();
 
@@ -64,7 +64,7 @@ namespace SchoolManagement.API.Controllers
             Attendance attendance)
         {
             var existingAttendance =
-                await _context.Attendance.FindAsync(id);
+                await _context.Attendances.FindAsync(id);
 
             if (existingAttendance == null)
             {
@@ -73,7 +73,7 @@ namespace SchoolManagement.API.Controllers
 
             existingAttendance.StudentId = attendance.StudentId;
             existingAttendance.StudentName = attendance.StudentName;
-            existingAttendance.className = attendance.className;
+            existingAttendance.ClassName = attendance.ClassName;
             existingAttendance.Date = attendance.Date;
             existingAttendance.Status = attendance.Status;
 
@@ -87,14 +87,14 @@ namespace SchoolManagement.API.Controllers
         public async Task<IActionResult> DeleteAttendance(int id)
         {
             var attendance =
-                await _context.Attendance.FindAsync(id);
+                await _context.Attendances.FindAsync(id);
 
             if (attendance == null)
             {
                 return NotFound();
             }
 
-            _context.Attendance.Remove(attendance);
+            _context.Attendances.Remove(attendance);
 
             await _context.SaveChangesAsync();
 
