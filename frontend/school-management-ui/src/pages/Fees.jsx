@@ -4,7 +4,14 @@ import { useFees } from "../context/FeeContext";
 
 function Fees() {
     const { students } = useStudents();
-    const { fees, setFees } = useFees();
+    const {
+        fees,
+        addFee,
+        updateFee,
+        deleteFee,
+        loading,
+        error,
+    } = useFees();
 
     const [showForm, setShowForm] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +23,27 @@ function Fees() {
         amount: "",
         status: "Pending",
     });
+
+    if (loading) {
+        return (
+            <div className="container-fluid p-4">
+                <h1 className="mb-4">Fees</h1>
+                <p>Loading fees...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container-fluid p-4">
+                <h1 className="mb-4">Fees</h1>
+
+                <div className="alert alert-danger">
+                    Failed to load fees: {error}
+                </div>
+            </div>
+        );
+    }
 
     const filteredFees = fees.filter((fee) =>
     fee.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,69 +72,72 @@ const pendingFees = fees
     );
 
     
-    const handleAddFee = () => {
+   const handleAddFee = async () => {
         if (!formData.studentId || !formData.amount) {
             alert("Please select a student and enter fee amount.");
             return;
         }
 
         const selectedStudent = students.find(
-            (student) => student.id === formData.studentId
+            (student) =>
+                String(student.id) === String(formData.studentId)
         );
 
         if (!selectedStudent) {
+            alert("Student not found.");
             return;
         }
 
-        // UPDATE existing fee
-        if (editingFee) {
-            const updatedFees = fees.map((fee) => {
-                if (fee.id === editingFee.id) {
-                    return {
-                        ...fee,
-                        studentId: selectedStudent.id,
-                        studentName: selectedStudent.name,
-                        className: selectedStudent.className,
-                        amount: Number(formData.amount),
-                        status: formData.status,
-                    };
-                }
+        try {
+            const feeData = {
+                feeCode: editingFee
+                    ? editingFee.feeCode
+                    : `FEE${String(
+                        fees.reduce((max, fee) => {
+                            const number = parseInt(
+                                String(fee.feeCode || "").replace("FEE", ""),
+                                10
+                            );
 
-                return fee;
-            });
+                            return number > max ? number : max;
+                        }, 0) + 1
+                    ).padStart(3, "0")}`,
 
-            setFees(updatedFees);
-        } 
-        
-        // ADD new fee
-        else {
-            const newFee = {
-                id: `FEE${String(
-                    fees.reduce((max, fee) => {
-                        const number = parseInt(fee.id.replace("FEE", ""), 10);
-                        return number > max ? number : max;
-                    }, 0) + 1
-                ).padStart(3, "0")}`,
-                studentId: selectedStudent.id,
+                studentId: String(selectedStudent.id),
                 studentName: selectedStudent.name,
                 className: selectedStudent.className,
                 amount: Number(formData.amount),
                 status: formData.status,
-                createdAt: new Date().toISOString(),
             };
 
-            setFees([...fees, newFee]);
+            if (editingFee) {
+                await updateFee(
+                    editingFee.id,
+                    feeData
+                );
+
+                alert("Fee updated successfully.");
+            } else {
+                await addFee(feeData);
+
+                alert("Fee added successfully.");
+            }
+
+            setFormData({
+                studentId: "",
+                amount: "",
+                status: "Pending",
+            });
+
+            setEditingFee(null);
+            setShowForm(false);
+
+        } catch (error) {
+            console.error("Error saving fee:", error);
+            alert("Failed to save fee.");
         }
-
-        setFormData({
-            studentId: "",
-            amount: "",
-            status: "Pending",
-        });
-
-        setEditingFee(null);
-        setShowForm(false);
     };
+
     const handleEditFee = (fee) => {
     setEditingFee(fee);
 
@@ -118,7 +149,8 @@ const pendingFees = fees
 
     setShowForm(true);
     };
-  const handleDeleteFee = (feeId) => {
+
+  const handleDeleteFee = async (feeId) => {
     const confirmDelete = window.confirm(
         "Are you sure you want to delete this fee record?"
     );
@@ -127,12 +159,15 @@ const pendingFees = fees
         return;
     }
 
-    const updatedFees = fees.filter(
-        (fee) => fee.id !== feeId
-    );
+    try {
+        await deleteFee(feeId);
 
-    setFees(updatedFees);
-    };  
+        alert("Fee deleted successfully.");
+    } catch (error) {
+        console.error("Error deleting fee:", error);
+        alert("Failed to delete fee.");
+    }
+    }; 
     
     const handleViewFee = (fee) => {
     setSelectedFee(fee);
@@ -212,7 +247,16 @@ const pendingFees = fees
                         </h5>
                         <button
                             className="btn btn-primary"
-                            onClick={() => setShowForm(true)}
+                            onClick={() => {
+                                setEditingFee(null);
+                                setFormData({
+                                    studentId: "",
+                                    amount: "",
+                                    status: "Pending",
+                                });
+
+                                setShowForm(true)
+                            }}
                         >
                             Add Fee
                         </button>
@@ -233,7 +277,7 @@ const pendingFees = fees
                             <div className="card-body">
 
                                 <h5 className="fw-bold mb-3">
-                                    Add Fee
+                                    {editingFee ? "Edit Fee" : "Add Fee"}
                                 </h5>
 
                                 <div className="row g-3">
@@ -262,7 +306,7 @@ const pendingFees = fees
                                                     key={student.id}
                                                     value={student.id}
                                                 >
-                                                    {student.id} - {student.name}
+                                                    {student.studentCode} - {student.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -320,7 +364,7 @@ const pendingFees = fees
                                         className="btn btn-success me-2"
                                         onClick={handleAddFee}
                                     >
-                                        Save Fee
+                                        {editingFee ? "Update Fee" : "Save Fee"}
                                     </button>
 
                                     <button
@@ -437,6 +481,13 @@ const pendingFees = fees
                                 <strong>Fee ID:</strong>
                                 <p className="text-muted">
                                     {selectedFee.id}
+                                </p>
+                            </div>
+
+                            <div className="col-md-6">
+                                <strong>Fee Code:</strong>
+                                <p className="text-muted">
+                                    {selectedFee.feeCode}
                                 </p>
                             </div>
 
