@@ -34,6 +34,9 @@ export const StudentProvider = ({ children }) => {
 
     // ADD STUDENT - POST
     const addStudent = async (student) => {
+    try {
+        setError("");
+
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
@@ -54,10 +57,18 @@ export const StudentProvider = ({ children }) => {
         ]);
 
         return newStudent;
-    };
+    } catch (error) {
+        console.error("Error adding student:", error);
+        setError(error.message);
+        throw error;
+    }
+};
 
     // UPDATE STUDENT - PUT
     const updateStudent = async (id, student) => {
+    try {
+        setError("");
+
         const response = await fetch(`${API_URL}/${id}`, {
             method: "PUT",
             headers: {
@@ -74,15 +85,25 @@ export const StudentProvider = ({ children }) => {
 
         setStudents((currentStudents) =>
             currentStudents.map((student) =>
-                student.id === id ? updatedStudent : student
+                student.id === id
+                    ? updatedStudent
+                    : student
             )
         );
 
         return updatedStudent;
-    };
+    } catch (error) {
+        console.error("Error updating student:", error);
+        setError(error.message);
+        throw error;
+    }
+};
 
     // DELETE STUDENT - DELETE
     const deleteStudent = async (id) => {
+    try {
+        setError("");
+
         const response = await fetch(`${API_URL}/${id}`, {
             method: "DELETE",
         });
@@ -96,7 +117,12 @@ export const StudentProvider = ({ children }) => {
                 (student) => student.id !== id
             )
         );
-    };
+    } catch (error) {
+        console.error("Error deleting student:", error);
+        setError(error.message);
+        throw error;
+    }
+};
 
     // LOAD STUDENTS WHEN APP STARTS
     useEffect(() => {

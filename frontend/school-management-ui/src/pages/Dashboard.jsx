@@ -44,8 +44,16 @@ const formatActivityTime = (date) => {
         return "";
     }
 
-    // Convert the API date into a JavaScript Date
-    const activityDate = new Date(date);
+    // Make sure a timezone is included.
+    // Backend CreatedAt values are stored in UTC.
+    const dateString =
+        typeof date === "string" &&
+        !date.endsWith("Z") &&
+        !/[+-]\d{2}:\d{2}$/.test(date)
+            ? `${date}Z`
+            : date;
+
+    const activityDate = new Date(dateString);
 
     if (isNaN(activityDate.getTime())) {
         return "";
@@ -53,21 +61,23 @@ const formatActivityTime = (date) => {
 
     const now = new Date();
 
-    // Difference between current time and activity time
-    const difference = now.getTime() - activityDate.getTime();
+    const difference =
+        now.getTime() - activityDate.getTime();
 
     // If the activity is slightly in the future
     if (difference < 0) {
         return "Just now";
     }
 
-    const totalSeconds = Math.floor(difference / 1000);
+    const totalSeconds =
+        Math.floor(difference / 1000);
 
     if (totalSeconds < 60) {
         return "Just now";
     }
 
-    const totalMinutes = Math.floor(totalSeconds / 60);
+    const totalMinutes =
+        Math.floor(totalSeconds / 60);
 
     if (totalMinutes < 60) {
         return `${totalMinutes} minute${
@@ -75,7 +85,8 @@ const formatActivityTime = (date) => {
         } ago`;
     }
 
-    const totalHours = Math.floor(totalMinutes / 60);
+    const totalHours =
+        Math.floor(totalMinutes / 60);
 
     if (totalHours < 24) {
         return `${totalHours} hour${
@@ -83,7 +94,8 @@ const formatActivityTime = (date) => {
         } ago`;
     }
 
-    const totalDays = Math.floor(totalHours / 24);
+    const totalDays =
+        Math.floor(totalHours / 24);
 
     if (totalDays === 1) {
         return "Yesterday";

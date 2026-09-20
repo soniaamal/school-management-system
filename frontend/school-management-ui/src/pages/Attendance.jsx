@@ -22,9 +22,13 @@ function Attendance() {
     const [searchTerm, setSearchTerm] = useState("");
 
     const [error, setError] = useState("");
+    const [saving, setSaving] = useState(false);
 
    const handleAttendance = async (student, status) => {
     try {
+        setError("");
+        setSaving(true);
+
         const existingRecord = attendance.find(
             (record) =>
                 record.studentId === student.studentCode &&
@@ -46,13 +50,16 @@ function Attendance() {
                 attendanceData
             );
         }
+
         // ADD new attendance
         else {
             await addAttendance(attendanceData);
         }
     } catch (error) {
         console.error("Error saving attendance:", error);
-        setError("Failed to save attendance.");
+        setError("Failed to save attendance. Please try again.");
+    } finally {
+        setSaving(false);
     }
 };
     
@@ -167,6 +174,11 @@ const attendanceRecords = attendance.filter(
     return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Attendance</h1>
+            {error && (
+                <div className="alert alert-danger">
+                    {error}
+                </div>
+            )}
 
             <div className="row g-3 mb-4">
 
@@ -306,8 +318,9 @@ const attendanceRecords = attendance.filter(
                                                             onClick={() =>
                                                                 handleAttendance(student, "Present")
                                                             }
+                                                            disabled={saving}
                                                         >
-                                                            Present
+                                                            {saving ? "Saving..." : "Present"}
                                                         </button>
 
                                                         <button
@@ -319,8 +332,9 @@ const attendanceRecords = attendance.filter(
                                                             onClick={() =>
                                                                 handleAttendance(student, "Absent")
                                                             }
+                                                            disabled={saving}
                                                         >
-                                                            Absent
+                                                            {saving ? "Saving..." : "Absent"}
                                                         </button>
                                                     </>
                                                 );

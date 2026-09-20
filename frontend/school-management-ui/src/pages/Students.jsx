@@ -22,50 +22,49 @@ function Students() {
     const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [editingStudent, setEditingStudent] = useState(null);
+    const [saving, setSaving] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState(null);
 
     // ADD / UPDATE STUDENT
-    const handleAddStudent = async () => {
-        // Validation
-        if (!formData.name.trim()) {
-            setError("Please enter student name.");
-            return;
-        }
+   const handleAddStudent = async () => {
+    // Validation
+    if (!formData.name.trim()) {
+        setError("Please enter student name.");
+        return;
+    }
 
-        if (!formData.className.trim()) {
-            setError("Please enter student class.");
-            return;
-        }
+    if (!formData.className.trim()) {
+        setError("Please enter student class.");
+        return;
+    }
 
-        if (!formData.gender) {
-            setError("Please select student gender.");
-            return;
-        }
+    if (!formData.gender) {
+        setError("Please select student gender.");
+        return;
+    }
+
+    try {
+        setSaving(true);
+        setError("");
 
         // UPDATE STUDENT
         if (editingStudent) {
-            try {
-                await updateStudent(editingStudent.id, {
-                    studentCode: editingStudent.studentCode,
-                    name: formData.name,
-                    className: formData.className,
-                    gender: formData.gender,
-                });
+            await updateStudent(editingStudent.id, {
+                studentCode: editingStudent.studentCode,
+                name: formData.name.trim(),
+                className: formData.className.trim(),
+                gender: formData.gender,
+            });
 
-                setEditingStudent(null);
+            setEditingStudent(null);
 
-                setFormData({
-                    name: "",
-                    className: "",
-                    gender: "",
-                });
+            setFormData({
+                name: "",
+                className: "",
+                gender: "",
+            });
 
-                setError("");
-                setShowForm(false);
-            } catch (error) {
-                console.error("Error updating student:", error);
-                setError("Failed to update student.");
-            }
+            setShowForm(false);
 
             return;
         }
@@ -75,27 +74,32 @@ function Students() {
             studentCode: `ST${String(
                 students.length + 1
             ).padStart(3, "0")}`,
-            name: formData.name,
-            className: formData.className,
+            name: formData.name.trim(),
+            className: formData.className.trim(),
             gender: formData.gender,
         };
 
-        try {
-            await addStudent(newStudent);
+        await addStudent(newStudent);
 
-            setFormData({
-                name: "",
-                className: "",
-                gender: "",
-            });
+        setFormData({
+            name: "",
+            className: "",
+            gender: "",
+        });
 
-            setError("");
-            setShowForm(false);
-        } catch (error) {
-            console.error("Error adding student:", error);
-            setError("Failed to add student.");
-        }
-    };
+        setShowForm(false);
+
+    } catch (error) {
+        console.error("Error saving student:", error);
+        setError(
+            editingStudent
+                ? "Failed to update student."
+                : "Failed to add student."
+        );
+    } finally {
+        setSaving(false);
+    }
+};
 
     // VIEW STUDENT
     const handleViewStudent = (student) => {
@@ -123,20 +127,25 @@ function Students() {
 
     // CONFIRM DELETE
     const confirmDeleteStudent = async () => {
-        if (!studentToDelete) {
-            return;
-        }
+    if (!studentToDelete) {
+        return;
+    }
 
-        try {
-            await deleteStudent(studentToDelete.id);
+    try {
+        setSaving(true);
+        setError("");
 
-            setStudentToDelete(null);
-        } catch (error) {
-            console.error("Error deleting student:", error);
-            setError("Failed to delete student.");
-            setStudentToDelete(null);
-        }
-    };
+        await deleteStudent(studentToDelete.id);
+
+        setStudentToDelete(null);
+
+    } catch (error) {
+        console.error("Error deleting student:", error);
+        setError("Failed to delete student.");
+    } finally {
+        setSaving(false);
+    }
+};
 
     // SEARCH
     const filteredStudents = students.filter((student) =>
@@ -276,8 +285,11 @@ function Students() {
                             <button
                                 className="btn btn-primary me-2"
                                 onClick={handleAddStudent}
+                                disabled={saving}
                             >
-                                {editingStudent
+                                {saving
+                                    ? "Saving..."
+                                    : editingStudent
                                     ? "Update Student"
                                     : "Add Student"}
                             </button>
@@ -474,8 +486,9 @@ function Students() {
                                     type="button"
                                     className="btn btn-danger"
                                     onClick={confirmDeleteStudent}
+                                    disabled={saving}
                                 >
-                                    Delete Student
+                                    {saving ? "Deleting..." : "Delete Student"}
                                 </button>
 
                             </div>

@@ -17,72 +17,83 @@ function Classes() {
 
     const [showForm, setShowForm] = useState(false);
     const [editingClass, setEditingClass] = useState(null);
-    
-    
+
     const [selectedClass, setSelectedClass] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+
+    const [errorMessage, setErrorMessage] = useState("");
+    const [saving, setSaving] = useState(false);
+    
     const [formData, setFormData] = useState({
         name: "",
         section:"",
         teacherCode:"",
     })
-  const handleAddClass = async (e) => {
-    e.preventDefault();
+    const handleAddClass = async (e) => {
+        e.preventDefault();
 
-    if (!formData.name.trim()) {
-        alert("Please enter class name.");
-        return;
-    }
+        // Validation
+        if (!formData.name.trim()) {
+            setErrorMessage("Please enter class name.");
+            return;
+        }
 
-    if (!formData.section.trim()) {
-        alert("Please enter section.");
-        return;
-    }
+        if (!formData.section.trim()) {
+            setErrorMessage("Please enter section.");
+            return;
+        }
 
-    if (!formData.teacherCode) {
-        alert("Please select a teacher.");
-        return;
-    }
+        if (!formData.teacherCode) {
+            setErrorMessage("Please select a teacher.");
+            return;
+        }
 
-    try {
-        // Generate the next ClassCode
-        const numbers = classes.map((classItem) => {
-            if (!classItem.classCode) return 0;
+        try {
+            setSaving(true);
+            setErrorMessage("");
 
-            return (
-                parseInt(
-                    String(classItem.classCode).replace("C", ""),
-                    10
-                ) || 0
-            );
-        });
+            // Generate the next ClassCode
+            const numbers = classes.map((classItem) => {
+                if (!classItem.classCode) {
+                    return 0;
+                }
 
-        const nextCodeNumber = Math.max(0, ...numbers) + 1;
+                return (
+                    parseInt(
+                        String(classItem.classCode).replace("C", ""),
+                        10
+                    ) || 0
+                );
+            });
 
-        const newClass = {
-            classCode: `C${String(nextCodeNumber).padStart(3, "0")}`,
-            name: formData.name,
-            section: formData.section,
-            teacherCode: formData.teacherCode,
-        };
+            const nextCodeNumber =
+                Math.max(0, ...numbers) + 1;
 
-        await addClass(newClass);
+            const newClass = {
+                classCode: `C${String(nextCodeNumber).padStart(3, "0")}`,
+                name: formData.name.trim(),
+                section: formData.section.trim(),
+                teacherCode: formData.teacherCode,
+            };
 
-        alert("Class added successfully.");
+            await addClass(newClass);
 
-        setFormData({
-            name: "",
-            section: "",
-            teacherCode: "",
-        });
+            setFormData({
+                name: "",
+                section: "",
+                teacherCode: "",
+            });
 
-        setShowForm(false);
-    } catch (error) {
-        console.error("Error adding class:", error);
-        alert("Failed to add class.");
-    }
-};
-const handleDeleteClass = async (id) => {
+            setShowForm(false);
+
+        } catch (error) {
+            console.error("Error adding class:", error);
+            setErrorMessage("Failed to add class.");
+        } finally {
+            setSaving(false);
+        }
+    };
+    const handleDeleteClass = async (id) => {
     const confirmed = window.confirm(
         "Are you sure you want to delete this class?"
     );
@@ -92,12 +103,20 @@ const handleDeleteClass = async (id) => {
     }
 
     try {
+        setSaving(true);
+        setErrorMessage("");
+
         await deleteClass(id);
 
-        alert("Class deleted successfully.");
+        if (selectedClass?.id === id) {
+            setSelectedClass(null);
+        }
+
     } catch (error) {
         console.error("Error deleting class:", error);
-        alert("Failed to delete class.");
+        setErrorMessage("Failed to delete class.");
+    } finally {
+        setSaving(false);
     }
 };
     
@@ -121,26 +140,30 @@ const handleUpdateClass = async (e) => {
         return;
     }
 
+    // Validation
     if (!formData.name.trim()) {
-        alert("Please enter class name.");
+        setErrorMessage("Please enter class name.");
         return;
     }
 
     if (!formData.section.trim()) {
-        alert("Please enter section.");
+        setErrorMessage("Please enter section.");
         return;
     }
 
     if (!formData.teacherCode) {
-        alert("Please select a teacher.");
+        setErrorMessage("Please select a teacher.");
         return;
     }
 
     try {
+        setSaving(true);
+        setErrorMessage("");
+
         const updatedClassData = {
             classCode: selectedClass.classCode,
-            name: formData.name,
-            section: formData.section,
+            name: formData.name.trim(),
+            section: formData.section.trim(),
             teacherCode: formData.teacherCode,
         };
 
@@ -149,8 +172,6 @@ const handleUpdateClass = async (e) => {
             updatedClassData
         );
 
-        alert("Class updated successfully.");
-
         setFormData({
             name: "",
             section: "",
@@ -158,13 +179,18 @@ const handleUpdateClass = async (e) => {
         });
 
         setSelectedClass(null);
+        setEditingClass(null);
         setShowForm(false);
+
     } catch (error) {
         console.error("Error updating class:", error);
-        alert("Failed to update class.");
+        setErrorMessage("Failed to update class.");
+    } finally {
+        setSaving(false);
     }
 };
-const handleViewClass = (classItem) => {
+
+    const handleViewClass = (classItem) => {
         setSelectedClass(classItem);
     
 };
@@ -213,7 +239,19 @@ const filteredClasses = classes.filter((classItem) => {
 
                         <button
                             className="btn btn-primary"
-                            onClick={() => setShowForm(true)}
+                            onClick={() => {
+                                setEditingClass(null);
+                                setSelectedClass(null);
+
+                                setFormData({
+                                    name: "",
+                                    section: "",
+                                    teacherCode: "",
+                                });
+
+                                setErrorMessage("");
+                                setShowForm(true);
+                            }}
                         >
                             Add Class
                         </button>
@@ -222,9 +260,14 @@ const filteredClasses = classes.filter((classItem) => {
                     {showForm && (
                         <div className="card border-0 bg-light mb-4">
                             <div className="card-body">
+                                {errorMessage && (
+                                    <div className="alert alert-danger">
+                                        {errorMessage}
+                                    </div>
+                                )}
 
                                 <h5 className="fw-bold mb-3">
-                                    Add Class
+                                    {editingClass ? "Edit Class" : "Add Class"}
                                 </h5>
 
                                 <div className="row g-3">
@@ -306,8 +349,13 @@ const filteredClasses = classes.filter((classItem) => {
                                                 ? handleUpdateClass
                                                 : handleAddClass
                                         }
+                                        disabled={saving}
                                     >
-                                        {editingClass ? "Update Class" : "Save Class"}
+                                        {saving
+                                            ? "saving..."
+                                            : editingClass
+                                                ? "Update Class"
+                                                : "Save Class"}
                                     </button>
 
                                     <button
@@ -315,6 +363,7 @@ const filteredClasses = classes.filter((classItem) => {
                                         onClick={() => {
                                             setShowForm(false);
                                             setEditingClass(null);
+                                            setSelectedClass(null);
 
                                             setFormData({
                                                 name: "",
@@ -322,6 +371,7 @@ const filteredClasses = classes.filter((classItem) => {
                                                 teacherCode: "",
                                           
                                             });
+                                            setErrorMessage("");
                                         }}
                                     >
                                         Cancel
@@ -496,8 +546,9 @@ const filteredClasses = classes.filter((classItem) => {
                                             <button
                                                 className="btn btn-sm btn-outline-danger"
                                                 onClick={() => handleDeleteClass(classItem.id)}
+                                                disabled={saving}
                                             >
-                                                Delete
+                                                {saving ? "Deleting..." : "Delete"}
                                             </button>
                                         </td>
                                     </tr>

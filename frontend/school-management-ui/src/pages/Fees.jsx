@@ -17,6 +17,9 @@ function Fees() {
     const [searchTerm, setSearchTerm] = useState("");
     const [editingFee, setEditingFee] = useState(null);
     const [selectedFee, setSelectedFee] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [actionError, setActionError] = useState("");
+
 
     const [formData, setFormData] = useState({
         studentId: "",
@@ -72,71 +75,76 @@ const pendingFees = fees
     );
 
     
-   const handleAddFee = async () => {
-        if (!formData.studentId || !formData.amount) {
-            alert("Please select a student and enter fee amount.");
-            return;
+  const handleAddFee = async () => {
+    if (!formData.studentId || !formData.amount) {
+        setActionError("Please select a student and enter fee amount.");
+        return;
+    }
+
+    const selectedStudent = students.find(
+        (student) =>
+            String(student.id) === String(formData.studentId)
+    );
+
+    if (!selectedStudent) {
+        setActionError("Student not found.");
+        return;
+    }
+
+    try {
+        setActionError("");
+        setSaving(true);
+
+        const feeData = {
+            feeCode: editingFee
+                ? editingFee.feeCode
+                : `FEE${String(
+                    fees.reduce((max, fee) => {
+                        const number = parseInt(
+                            String(fee.feeCode || "").replace("FEE", ""),
+                            10
+                        );
+
+                        return number > max ? number : max;
+                    }, 0) + 1
+                ).padStart(3, "0")}`,
+
+            studentId: String(selectedStudent.id),
+            studentName: selectedStudent.name,
+            className: selectedStudent.className,
+            amount: Number(formData.amount),
+            status: formData.status,
+        };
+
+        if (editingFee) {
+            await updateFee(
+                editingFee.id,
+                feeData
+            );
+        } else {
+            await addFee(feeData);
         }
 
-        const selectedStudent = students.find(
-            (student) =>
-                String(student.id) === String(formData.studentId)
+        setFormData({
+            studentId: "",
+            amount: "",
+            status: "Pending",
+        });
+
+        setEditingFee(null);
+        setShowForm(false);
+
+    } catch (error) {
+        console.error("Error saving fee:", error);
+        setActionError(
+            editingFee
+                ? "Failed to update fee. Please try again."
+                : "Failed to add fee. Please try again."
         );
-
-        if (!selectedStudent) {
-            alert("Student not found.");
-            return;
-        }
-
-        try {
-            const feeData = {
-                feeCode: editingFee
-                    ? editingFee.feeCode
-                    : `FEE${String(
-                        fees.reduce((max, fee) => {
-                            const number = parseInt(
-                                String(fee.feeCode || "").replace("FEE", ""),
-                                10
-                            );
-
-                            return number > max ? number : max;
-                        }, 0) + 1
-                    ).padStart(3, "0")}`,
-
-                studentId: String(selectedStudent.id),
-                studentName: selectedStudent.name,
-                className: selectedStudent.className,
-                amount: Number(formData.amount),
-                status: formData.status,
-            };
-
-            if (editingFee) {
-                await updateFee(
-                    editingFee.id,
-                    feeData
-                );
-
-                alert("Fee updated successfully.");
-            } else {
-                await addFee(feeData);
-
-                alert("Fee added successfully.");
-            }
-
-            setFormData({
-                studentId: "",
-                amount: "",
-                status: "Pending",
-            });
-
-            setEditingFee(null);
-            setShowForm(false);
-
-        } catch (error) {
-            console.error("Error saving fee:", error);
-            alert("Failed to save fee.");
-        }
-    };
+    } finally {
+        setSaving(false);
+    }
+};
 
     const handleEditFee = (fee) => {
     setEditingFee(fee);
@@ -160,14 +168,24 @@ const pendingFees = fees
     }
 
     try {
+        setActionError("");
+        setSaving(true);
+
         await deleteFee(feeId);
 
-        alert("Fee deleted successfully.");
+        if (selectedFee?.id === feeId) {
+            setSelectedFee(null);
+        }
+
     } catch (error) {
         console.error("Error deleting fee:", error);
-        alert("Failed to delete fee.");
+        setActionError(
+            "Failed to delete fee. Please try again."
+        );
+    } finally {
+        setSaving(false);
     }
-    }; 
+};
     
     const handleViewFee = (fee) => {
     setSelectedFee(fee);
@@ -177,6 +195,11 @@ const pendingFees = fees
     return (
         <div className="container-fluid p-4">
             <h1 className="mb-4">Fees</h1>
+            {actionError && (
+            <div className="alert alert-danger">
+                {actionError}
+            </div>
+            )}
 
             <div className="row g-3 mb-4">
 
@@ -249,6 +272,8 @@ const pendingFees = fees
                             className="btn btn-primary"
                             onClick={() => {
                                 setEditingFee(null);
+                                setActionError("");
+
                                 setFormData({
                                     studentId: "",
                                     amount: "",
@@ -363,13 +388,22 @@ const pendingFees = fees
                                     <button
                                         className="btn btn-success me-2"
                                         onClick={handleAddFee}
+                                        disabled={saving}
                                     >
-                                        {editingFee ? "Update Fee" : "Save Fee"}
+                                        {saving
+                                            ? "saving..."
+                                            : editingFee
+                                                ? "Update Fee"
+                                                : "Save Fee"}
                                     </button>
 
                                     <button
                                         className="btn btn-secondary"
-                                        onClick={() => setShowForm(false)}
+                                        onClick={() => {
+                                            setShowForm(false);
+                                            setEditingFee(null);
+                                            setActionError("");  
+                                        }}
                                     >
                                         Cancel
                                     </button>
@@ -434,8 +468,9 @@ const pendingFees = fees
                                                 <button
                                                     className="btn btn-sm btn-outline-danger "
                                                     onClick={() => handleDeleteFee(fee.id)}
+                                                    disabled={saving}
                                                 >
-                                                    Delete
+                                                    {saving ? "Deleting...": "Delete"}
                                                 </button>
                                             </td>
                                         </tr>

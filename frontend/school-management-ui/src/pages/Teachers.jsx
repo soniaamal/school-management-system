@@ -16,6 +16,7 @@ function Teachers() {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [error, setError] = useState("");
+    const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -25,80 +26,89 @@ function Teachers() {
 
     // ADD / UPDATE TEACHER
     const handleSaveTeacher = async () => {
-        if (!formData.name.trim()) {
-            setError("Please enter teacher name.");
-            return;
+    // Validation
+    if (!formData.name.trim()) {
+        setError("Please enter teacher name.");
+        return;
+    }
+
+    if (!formData.subject.trim()) {
+        setError("Please enter teacher subject.");
+        return;
+    }
+
+    if (!formData.gender) {
+        setError("Please select teacher gender.");
+        return;
+    }
+
+    try {
+        setSaving(true);
+        setError("");
+
+        // UPDATE
+        if (editingTeacher) {
+            await updateTeacher(editingTeacher.id, {
+                teacherCode: editingTeacher.teacherCode,
+                name: formData.name.trim(),
+                subject: formData.subject.trim(),
+                gender: formData.gender,
+            });
         }
 
-        if (!formData.subject.trim()) {
-            setError("Please enter teacher subject.");
-            return;
-        }
+        // ADD
+        else {
+            const numbers = teachers.map((teacher) => {
+                if (!teacher.teacherCode) {
+                    return 0;
+                }
 
-        if (!formData.gender) {
-            setError("Please select teacher gender.");
-            return;
-        }
-
-        try {
-            // UPDATE
-            if (editingTeacher) {
-                await updateTeacher(editingTeacher.id, {
-                    teacherCode: editingTeacher.teacherCode,
-                    name: formData.name,
-                    subject: formData.subject,
-                    gender: formData.gender,
-                });
-            }
-            // ADD
-            else {
-                const numbers = teachers.map((teacher) => {
-                    if (!teacher.teacherCode) {
-                        return 0;
-                    }
-
-                    return (
-                        parseInt(
-                            teacher.teacherCode.replace("T", ""),
-                            10
-                        ) || 0
-                    );
-                });
-
-                const nextNumber =
-                    Math.max(0, ...numbers) + 1;
-
-                const newTeacher = {
-                    teacherCode: `T${String(
-                        nextNumber
-                    ).padStart(3, "0")}`,
-                    name: formData.name,
-                    subject: formData.subject,
-                    gender: formData.gender,
-                };
-
-                await addTeacher(newTeacher);
-            }
-
-            // RESET FORM
-            setFormData({
-                name: "",
-                subject: "",
-                gender: "",
+                return (
+                    parseInt(
+                        teacher.teacherCode.replace("T", ""),
+                        10
+                    ) || 0
+                );
             });
 
-            setEditingTeacher(null);
-            setShowForm(false);
-            setError("");
-        } catch (error) {
-            console.error("Teacher save error:", error);
-            setError(
-                editingTeacher
-                    ? "Failed to update teacher."
-                    : "Failed to add teacher."
-            );
+            const nextNumber =
+                Math.max(0, ...numbers) + 1;
+
+            const newTeacher = {
+                teacherCode: `T${String(
+                    nextNumber
+                ).padStart(3, "0")}`,
+                name: formData.name.trim(),
+                subject: formData.subject.trim(),
+                gender: formData.gender,
+            };
+
+            await addTeacher(newTeacher);
         }
-    };
+
+        // RESET FORM
+        setFormData({
+            name: "",
+            subject: "",
+            gender: "",
+        });
+
+        setEditingTeacher(null);
+        setShowForm(false);
+        setError("");
+
+    } catch (error) {
+        console.error("Teacher save error:", error);
+
+        setError(
+            editingTeacher
+                ? "Failed to update teacher."
+                : "Failed to add teacher."
+        );
+    } finally {
+        setSaving(false);
+    }
+};
 
     // EDIT
     const handleEditTeacher = (teacher) => {
@@ -126,22 +136,26 @@ function Teachers() {
 
     // CONFIRM DELETE
     const confirmDeleteTeacher = async () => {
-        if (!teacherToDelete) {
-            return;
-        }
+    if (!teacherToDelete) {
+        return;
+    }
 
-        try {
-            await deleteTeacher(teacherToDelete.id);
+    try {
+        setSaving(true);
+        setError("");
 
-            setTeacherToDelete(null);
-            setSelectedTeacher(null);
-            setError("");
-        } catch (error) {
-            console.error("Teacher delete error:", error);
-            setError("Failed to delete teacher.");
-            setTeacherToDelete(null);
-        }
-    };
+        await deleteTeacher(teacherToDelete.id);
+
+        setTeacherToDelete(null);
+        setSelectedTeacher(null);
+
+    } catch (error) {
+        console.error("Teacher delete error:", error);
+        setError("Failed to delete teacher.");
+    } finally {
+        setSaving(false);
+    }
+};
 
     // CANCEL FORM
     const handleCancel = () => {
@@ -307,8 +321,11 @@ function Teachers() {
                             <button
                                 className="btn btn-primary me-2"
                                 onClick={handleSaveTeacher}
+                                disabled={saving}
                             >
-                                {editingTeacher
+                                {saving
+                                    ? "Saving..."
+                                    : editingTeacher
                                     ? "Update Teacher"
                                     : "Add Teacher"}
                             </button>
@@ -584,8 +601,9 @@ function Teachers() {
                                     type="button"
                                     className="btn btn-danger"
                                     onClick={confirmDeleteTeacher}
+                                    disabled={saving}
                                 >
-                                    Delete Teacher
+                                    {saving ? "Deleting..." : "Delete Teacher"}
                                 </button>
 
                             </div>
